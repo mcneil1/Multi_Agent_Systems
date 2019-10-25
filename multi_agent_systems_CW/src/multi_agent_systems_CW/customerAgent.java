@@ -1,8 +1,13 @@
 package multi_agent_systems_CW;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -75,6 +80,9 @@ public class customerAgent extends Agent
 					/*
 					 * Add customer behaviours here
 					 */
+					ArrayList<Behaviour> cyclicBehaviours = new ArrayList<>();
+					myAgent.addBehaviour(new EndDayListener(myAgent, cyclicBehaviours));
+					
 				}
 				else
 				{
@@ -92,4 +100,45 @@ public class customerAgent extends Agent
 	/*
 	 * Implement behaviours below
 	 */
+	
+	
+	public class EndDayListener extends CyclicBehaviour
+	{
+		private List<Behaviour> toRemove;
+		
+		public EndDayListener(Agent a, List<Behaviour> toRemove)
+		{
+			super(a);
+			this.toRemove = toRemove;
+		}
+		
+		@Override
+		public void action()
+		{
+			MessageTemplate mt = MessageTemplate.MatchContent("done");
+			ACLMessage msg = myAgent.receive(mt);
+			if(msg != null)
+			{
+				if(msg.getSender().equals(manufacturer))
+				{
+					//we are finished
+					ACLMessage tick = new ACLMessage(ACLMessage.INFORM);
+					tick.setContent("done");
+					tick.addReceiver(tickerAgent);
+					myAgent.send(tick);
+					
+					//remove behaviours
+					for(Behaviour b : toRemove)
+					{
+						myAgent.removeBehaviour(b);
+					}
+					myAgent.removeBehaviour(this);
+				}
+			}
+			else
+			{
+				block();
+			}
+		}
+	}
 }
