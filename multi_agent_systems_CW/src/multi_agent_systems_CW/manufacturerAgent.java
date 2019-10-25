@@ -28,7 +28,7 @@ public class manufacturerAgent extends Agent
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		ServiceDescription sd = new ServiceDescription();
-		sd.setType("customer");
+		sd.setType("manufacturer");
 		sd.setName(getLocalName() + "-manufacturer-agent");
 		dfd.addServices(sd);
 		try
@@ -120,6 +120,7 @@ public class manufacturerAgent extends Agent
 			//Send messages to all suppliers and customers
 			ACLMessage customerDone = new ACLMessage(ACLMessage.INFORM);
 			customerDone.setContent("done");
+			/*
 			for(AID customer : customers)
 			{
 				customerDone.addReceiver(customer);
@@ -133,6 +134,7 @@ public class manufacturerAgent extends Agent
 				supplierDone.addReceiver(supplier);
 			}
 			myAgent.send(supplierDone);
+			*/
 		}
 	}
 }

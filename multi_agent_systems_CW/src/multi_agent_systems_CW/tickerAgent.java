@@ -96,17 +96,19 @@ public class tickerAgent extends Agent
 						simulationAgents.add(agentsType1[i].getName());
 					}
 					
+					
 					DFAgentDescription[] agentsType2 = DFService.search(myAgent, template2);
 					for(int i=0; i < agentsType2.length; i++)
 					{
-						simulationAgents.add(agentsType1[i].getName());
+						simulationAgents.add(agentsType2[i].getName());
 					}
 					
 					DFAgentDescription[] agentsType3 = DFService.search(myAgent, template3);
 					for(int i=0; i < agentsType3.length; i++)
 					{
-						simulationAgents.add(agentsType1[i].getName());
+						simulationAgents.add(agentsType3[i].getName());
 					}
+					
 				}
 				catch(FIPAException e)
 				{
