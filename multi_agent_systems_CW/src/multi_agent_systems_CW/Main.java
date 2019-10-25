@@ -21,6 +21,9 @@ public class Main
 			AgentController ticker = myContainer.createNewAgent("ticker", tickerAgent.class.getCanonicalName(), null);
 			ticker.start();
 			
+			AgentController manufacturer = myContainer.createNewAgent("manufacturer", manufacturerAgent.class.getCanonicalName(), null);
+			manufacturer.start();
+			
 			/*
 			 * add agents below
 			 */
