@@ -1,5 +1,6 @@
 package mas_ontology_elements;
 
+import jade.content.Concept;
 import jade.content.onto.annotations.AggregateSlot;
 import jade.content.onto.annotations.Slot;
 
@@ -14,16 +15,9 @@ public class Screen extends Component
 		return size;
 	}
 	
-	public void setSize()
+	public void setSize(String size)
 	{
-		if(this.getSerialNumber() == 1)
-		{
-			this.size = "5' Screen";
-		}
-		else if (this.getSerialNumber() == 2)
-		{
-			this.size = "7' Screen";
-		}
+		this.size = size;
 	}
 	
 	

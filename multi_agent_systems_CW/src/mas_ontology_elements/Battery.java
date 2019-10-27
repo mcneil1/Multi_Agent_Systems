@@ -1,5 +1,6 @@
 package mas_ontology_elements;
 
+import jade.content.Concept;
 import jade.content.onto.annotations.AggregateSlot;
 import jade.content.onto.annotations.Slot;
 
@@ -14,15 +15,8 @@ private String size;
 		return size;
 	}
 	
-	public void setSize()
+	public void setSize(String size)
 	{
-		if(this.getSerialNumber() == 6)
-		{
-			this.size = "2000mAh";
-		}
-		else if (this.getSerialNumber() == 7)
-		{
-			this.size = "3000mAh";
-		}
+		this.size = size;
 	}
 }

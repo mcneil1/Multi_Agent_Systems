@@ -6,10 +6,10 @@ import jade.content.onto.annotations.Slot;
 public class Phone implements Concept
 {
 	private String type;
-	private Component screen;
-	private Component storage;
-	private Component ram;
-	private Component battery;
+	private Screen screen;
+	private Storage storage;
+	private RAM ram;
+	private Battery battery;
 	
 	
 	@Slot(mandatory = true)
@@ -26,82 +26,54 @@ public class Phone implements Concept
 	
 	
 	@Slot(mandatory = true)
-	public Component getScreen()
+	public Screen getScreen()
 	{
 		return screen;
 	}
 	
-	public void setScreen()
+	public void setScreen(Screen screen)
 	{
-		if(this.type == "Small phone")
-		{
-			this.screen.setSerialNumber(1);
-		}
-		else if(this.type == "Phablet")
-		{
-			this.screen.setSerialNumber(2);
-		}
+		this.screen = screen;
 	}
 	
 	
 	
 	@Slot(mandatory = true)
-	public Component getStorage()
+	public Storage getStorage()
 	{
 		return storage;
 	}
 	
-	public void setStorage(int serialNumber)
+	public void setStorage(Storage storage)
 	{
-		if(serialNumber == 3)
-		{
-			this.storage.setSerialNumber(serialNumber);
-		}
-		else if(serialNumber == 4)
-		{
-			this.storage.setSerialNumber(serialNumber);
-		}
+		this.storage = storage;
 	}
 	
 	
 	
 	
 	@Slot(mandatory = true)
-	public Component getRam()
+	public RAM getRam()
 	{
 		return ram;
 	}
 	
-	public void setRam(int serialNumber)
+	public void setRam(RAM ram)
 	{
-		if(serialNumber == 5)
-		{
-			this.ram.setSerialNumber(serialNumber);
-		}
-		else if(serialNumber == 6)
-		{
-			this.ram.setSerialNumber(serialNumber);
-		}
+		this.ram = ram;
 	}
 	
 	
 	
 	
 	@Slot(mandatory = true)
-	public Component getBattery()
+	public Battery getBattery()
 	{
 		return battery;
 	}
 	
-	public void setBattery()
+	public void setBattery(Battery battery)
 	{
-		if(this.type == "Small phone")
-		{
-			this.battery.setSerialNumber(7);
-		}
-		else if(this.type == "Phablet")
-		{
-			this.battery.setSerialNumber(8);
-		}
+		this.battery = battery;
 	}
 }

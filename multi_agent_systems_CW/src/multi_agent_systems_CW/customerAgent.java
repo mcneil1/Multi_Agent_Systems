@@ -3,19 +3,32 @@ package multi_agent_systems_CW;
 import java.util.ArrayList;
 import java.util.List;
 
+import jade.content.lang.Codec;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.Ontology;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import mas_ontology.ECommerceOntology;
+import mas_ontology_elements.Battery;
+import mas_ontology_elements.Component;
+import mas_ontology_elements.Phone;
+import mas_ontology_elements.RAM;
+import mas_ontology_elements.Screen;
+import mas_ontology_elements.Storage;
 
 public class customerAgent extends Agent
 {
+	private Codec codec = new SLCodec();
+	private Ontology ontology = ECommerceOntology.getInstance();
 	private AID tickerAgent;
 	private AID manufacturer;
 	
@@ -101,7 +114,8 @@ public class customerAgent extends Agent
 					 * Add customer behaviours here
 					 * 
 					 * 
-					 * 					 */
+					 */
+					myAgent.addBehaviour(new SendOrder());
 					ArrayList<Behaviour> cyclicBehaviours = new ArrayList<>();
 					myAgent.addBehaviour(new EndDayListener(myAgent, cyclicBehaviours));
 					
@@ -126,6 +140,72 @@ public class customerAgent extends Agent
 	 * 
 	 * 
 	 */
+	
+	public class SendOrder extends OneShotBehaviour
+	{
+		private double phoneType = Math.random();
+		private double ramType = Math.random();
+		private double storageType = Math.random();
+		private Storage storage = new Storage();
+		private Screen screen = new Screen();
+		private Battery battery = new Battery();
+		private RAM ram = new RAM();
+		
+		public void action()
+		{
+			//make phone to be purchased
+			Phone phone = new Phone();
+			if(phoneType < 0.5)
+			{
+				phone.setType("Small phone");
+				
+				screen.setSize("5' Screen");
+				phone.setScreen(screen);
+				
+				battery.setSize("2000mAh");
+				phone.setBattery(battery);
+			}
+			else
+			{
+				phone.setType("Phablet");
+				
+				screen.setSize("7' Screen");
+				phone.setScreen(screen);
+				
+				battery.setSize("3000mAh");
+				phone.setBattery(battery);
+			}
+			
+			if(storageType < 0.5)
+			{
+				storage.setSize("64Gb");
+				phone.setStorage(storage);
+			}
+			else
+			{
+				storage.setSize("256Gb");
+				phone.setStorage(storage);
+			}
+			
+			if(ramType < 0.5)
+			{
+				ram.setSize("4Gb");
+				phone.setRam(ram);
+			}
+			else
+			{
+				ram.setSize("8Gb");
+				phone.setRam(ram);
+			}
+			
+			System.out.println("Phone Screen: " + phone.getScreen().getSize());
+			System.out.println("Phone RAM: " + phone.getRam().getSize());
+			System.out.println("Phone Storage: " + phone.getStorage().getSize());
+			System.out.println("Phone Battery: " + phone.getBattery().getSize());
+			
+			
+		}
+	}
 	
 	
 	public class EndDayListener extends CyclicBehaviour
