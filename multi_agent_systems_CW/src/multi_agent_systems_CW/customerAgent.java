@@ -2,10 +2,13 @@ package multi_agent_systems_CW;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import jade.content.lang.Codec;
+import jade.content.lang.Codec.CodecException;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
@@ -20,10 +23,12 @@ import jade.lang.acl.MessageTemplate;
 import mas_ontology.ECommerceOntology;
 import mas_ontology_elements.Battery;
 import mas_ontology_elements.Component;
+import mas_ontology_elements.Order;
 import mas_ontology_elements.Phone;
 import mas_ontology_elements.RAM;
 import mas_ontology_elements.Screen;
 import mas_ontology_elements.Storage;
+
 
 public class customerAgent extends Agent
 {
@@ -31,10 +36,14 @@ public class customerAgent extends Agent
 	private Ontology ontology = ECommerceOntology.getInstance();
 	private AID tickerAgent;
 	private AID manufacturer;
+	private int day = 0;
 	
 	@Override
 	protected void setup()
 	{
+		getContentManager().registerLanguage(codec);
+		getContentManager().registerOntology(ontology);
+		
 		//add agents to the yellow pages
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
@@ -108,6 +117,7 @@ public class customerAgent extends Agent
 				}
 				if(msg.getContent().equals("new day"))
 				{
+					day++;
 					/*
 					 * 
 					 * 
@@ -198,11 +208,67 @@ public class customerAgent extends Agent
 				phone.setRam(ram);
 			}
 			
-			System.out.println("Phone Screen: " + phone.getScreen().getSize());
-			System.out.println("Phone RAM: " + phone.getRam().getSize());
-			System.out.println("Phone Storage: " + phone.getStorage().getSize());
-			System.out.println("Phone Battery: " + phone.getBattery().getSize());
+			//Prepare message that will include order
 			
+			ACLMessage msg = new ACLMessage(ACLMessage.PROPOSE);
+			msg.addReceiver(manufacturer);
+			msg.setLanguage(codec.getName());
+			msg.setOntology(ontology.getName());
+			
+			//produce int variables for order content randomly
+			int dueDate = 0;
+			int lateFee = 0;
+			int quantity = 0;
+			int price = 0;
+			
+			for(int i = 0; i < 4; i++)
+			{
+				Random r = new Random();
+				if(i == 0)
+				{
+					dueDate = day + r.nextInt(7) + 1;
+				}
+				if(i == 1)
+				{
+					lateFee = r.nextInt(1000)+1;
+				}
+				if(i == 2)
+				{
+					quantity = r.nextInt(50 - 1) + 1;
+				}
+				if(i == 3)
+				{
+					price = ((r.nextInt((500 - 200)+1) + 200) * quantity);
+				}
+			}
+			
+			System.out.println("day: " + day);
+			System.out.println("due date: " + dueDate);
+			System.out.println("Quantity: " + quantity);
+			System.out.println("Price: " + price);
+			System.out.println("");
+			
+			Order order = new Order();
+			order.setCustomer(myAgent.getAID());
+			order.setPhone(phone);
+			order.setDueDate(dueDate);
+			order.setLateFee(lateFee);
+			order.setPrice(price);
+			order.setQuantity(quantity);
+			
+			try
+			{
+				getContentManager().fillContent(msg, order);
+				send(msg);
+			}
+			catch (CodecException ce) 
+			{
+				ce.printStackTrace();
+			}
+			catch (OntologyException oe) 
+			{
+				oe.printStackTrace();
+			} 
 			
 		}
 	}

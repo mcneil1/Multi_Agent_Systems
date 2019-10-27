@@ -12,67 +12,67 @@ public class Order implements AgentAction
 	private int quantity;
 	private int price;
 	
-	private AID getCustomer()
+	public AID getCustomer()
 	{
 		return customer;
 	}
 	
-	private void setCustomer(AID customer)
+	public void setCustomer(AID customer)
 	{
 		this.customer = customer;
 	}
 	
 	
-	private Phone getPhone()
+	public Phone getPhone()
 	{
 		return phone;
 	}
 	
-	private void setPhone(Phone phone)
+	public void setPhone(Phone phone)
 	{
 		this.phone = phone;
 	}
 	
 	
-	private int getDueDate()
+	public int getDueDate()
 	{
 		return dueDate;
 	}
 	
-	private void setDueDate(int dueDate)
+	public void setDueDate(int dueDate)
 	{
 		this.dueDate = dueDate;
 	}
 	
 	
-	private int getLateFee()
+	public int getLateFee()
 	{
 		return lateFee;
 	}
 	
-	private void setLateFee(int lateFee)
+	public void setLateFee(int lateFee)
 	{
 		this.lateFee = lateFee;
 	}
 	
 	
-	private int getQuantity()
+	public int getQuantity()
 	{
 		return quantity;
 	}
 	
-	private void setQuantity(int quaantity)
+	public void setQuantity(int quantity)
 	{
 		this.quantity = quantity;
 	}
 	
 	
-	private int getPrice()
+	public int getPrice()
 	{
 		return price;
 	}
 	
-	private void setPrice(int price)
+	public void setPrice(int price)
 	{
 		this.price = price;
 	}
