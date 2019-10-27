@@ -80,12 +80,12 @@ public class tickerAgent extends Agent
 				
 				DFAgentDescription template2 = new DFAgentDescription();
 				ServiceDescription sd2 = new ServiceDescription();
-				sd.setType("manufacturer");
+				sd2.setType("manufacturer");
 				template2.addServices(sd2);
 				
 				DFAgentDescription template3 = new DFAgentDescription();
 				ServiceDescription sd3 = new ServiceDescription();
-				sd.setType("supplier");
+				sd3.setType("supplier");
 				template3.addServices(sd3);
 				
 				try

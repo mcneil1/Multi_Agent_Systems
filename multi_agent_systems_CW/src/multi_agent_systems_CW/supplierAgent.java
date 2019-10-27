@@ -13,8 +13,6 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
-import multi_agent_systems_CW.customerAgent.EndDayListener;
-import multi_agent_systems_CW.customerAgent.TickerWaiter;
 
 public class supplierAgent extends Agent
 {

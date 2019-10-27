@@ -96,8 +96,12 @@ public class customerAgent extends Agent
 				if(msg.getContent().equals("new day"))
 				{
 					/*
+					 * 
+					 * 
 					 * Add customer behaviours here
-					 */
+					 * 
+					 * 
+					 * 					 */
 					ArrayList<Behaviour> cyclicBehaviours = new ArrayList<>();
 					myAgent.addBehaviour(new EndDayListener(myAgent, cyclicBehaviours));
 					
@@ -116,7 +120,11 @@ public class customerAgent extends Agent
 	}
 	
 	/*
+	 * 
+	 * 
 	 * Implement behaviours below
+	 * 
+	 * 
 	 */
 	
 	

@@ -13,12 +13,13 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.wrapper.AgentController;
 
 
 public class manufacturerAgent extends Agent
 {
-	private ArrayList<AID> customers;
-	private ArrayList<AID> suppliers;
+	private ArrayList<AID> customers = new ArrayList<>();
+	private ArrayList<AID> suppliers = new ArrayList<>();
 	private AID tickerAgent;
 	
 	@Override 
@@ -84,6 +85,7 @@ public class manufacturerAgent extends Agent
 					//spawn new sequential for day's activity
 					SequentialBehaviour dailyActivity = new SequentialBehaviour();
 					//sub-behaviours will execute in the order they are added
+					dailyActivity.addSubBehaviour(new FindAgents(myAgent));
 					dailyActivity.addSubBehaviour(new EndDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
@@ -97,6 +99,50 @@ public class manufacturerAgent extends Agent
 			else
 			{
 				block();
+			}
+		}
+	}	
+	
+	
+	public class FindAgents extends OneShotBehaviour
+	{
+		public FindAgents(Agent a)
+		{
+			super(a);
+		}
+		
+		@Override 
+		public void action()
+		{
+			DFAgentDescription customerTemplate = new DFAgentDescription();
+			ServiceDescription csd = new ServiceDescription();
+			csd.setType("customer");
+			customerTemplate.addServices(csd);
+			
+			DFAgentDescription supplierTemplate = new DFAgentDescription();
+			ServiceDescription ssd = new ServiceDescription();
+			csd.setType("supplier");
+			supplierTemplate.addServices(ssd);
+			
+			try
+			{
+				customers.clear();
+				DFAgentDescription[] custAgent = DFService.search(myAgent, customerTemplate);
+				for(int i = 0; i<custAgent.length; i++)
+				{
+					customers.add(custAgent[i].getName());
+				}
+				
+				suppliers.clear();
+				DFAgentDescription[] supplierAgent = DFService.search(myAgent, supplierTemplate);
+				for(int i = 0; i<supplierAgent.length; i++)
+				{
+					suppliers.add(supplierAgent[i].getName());
+				}
+			}
+			catch (FIPAException fe)
+			{
+				fe.printStackTrace();
 			}
 		}
 	}
@@ -117,10 +163,10 @@ public class manufacturerAgent extends Agent
 			msg.setContent("done");
 			myAgent.send(msg);
 			
+			
 			//Send messages to all suppliers and customers
 			ACLMessage customerDone = new ACLMessage(ACLMessage.INFORM);
 			customerDone.setContent("done");
-			/*
 			for(AID customer : customers)
 			{
 				customerDone.addReceiver(customer);
@@ -134,7 +180,7 @@ public class manufacturerAgent extends Agent
 				supplierDone.addReceiver(supplier);
 			}
 			myAgent.send(supplierDone);
-			*/
+			
 		}
 	}
 }
