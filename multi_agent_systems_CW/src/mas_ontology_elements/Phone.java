@@ -18,7 +18,7 @@ public class Phone implements Concept
 		return type;
 	}
 	
-	public void setScreen(String type)
+	public void setType(String type)
 	{
 		this.type = type;
 	}
