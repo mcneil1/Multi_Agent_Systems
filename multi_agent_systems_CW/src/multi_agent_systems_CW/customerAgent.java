@@ -242,12 +242,6 @@ public class customerAgent extends Agent
 				}
 			}
 			
-			System.out.println("day: " + day);
-			System.out.println("due date: " + dueDate);
-			System.out.println("Quantity: " + quantity);
-			System.out.println("Price: " + price);
-			System.out.println("");
-			
 			Order order = new Order();
 			order.setCustomer(myAgent.getAID());
 			order.setPhone(phone);
