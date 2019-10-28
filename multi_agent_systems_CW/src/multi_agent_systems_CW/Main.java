@@ -5,6 +5,11 @@ import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
+import mas_ontology_elements.Battery;
+import mas_ontology_elements.Component;
+import mas_ontology_elements.RAM;
+import mas_ontology_elements.Screen;
+import mas_ontology_elements.Storage;
 
 public class Main 
 {
@@ -24,7 +29,40 @@ public class Main
 			AgentController manufacturer = myContainer.createNewAgent("manufacturer", manufacturerAgent.class.getCanonicalName(), null);
 			manufacturer.start();
 			
-			AgentController supplier1 = myContainer.createNewAgent("supplier1", supplierAgent.class.getCanonicalName(), null);
+			//suppliers
+			Storage storage1 = new Storage();
+			storage1.setSize("64Gb");
+			Storage storage2 = new Storage();
+			storage2.setSize("256Gb");
+			
+			Screen screen1 = new Screen();
+			screen1.setSize("5' Screen");
+			Screen screen2 = new Screen();
+			screen2.setSize("7' Screen");
+			
+			Battery battery1 = new Battery();
+			battery1.setSize("2000mAh");
+			Battery battery2 = new Battery();
+			battery2.setSize("3000mAh");
+			
+			RAM ram1 = new RAM();
+			ram1.setSize("4Gb");
+			RAM ram2 = new RAM();
+			ram2.setSize("8Gb");
+				
+			Component[] components1 = {screen1, screen2, storage1, storage2, ram1, ram2, battery1, battery2};
+			int[] prices1 = {100, 150, 25, 50, 30, 60, 70, 100};
+			int deliverySpeed1 = 1;
+			
+			Object[] supplier1List = 
+				{
+						components1,
+						prices1,
+						deliverySpeed1
+				};
+			
+			
+			AgentController supplier1 = myContainer.createNewAgent("supplier1", supplierAgent.class.getCanonicalName(), supplier1List);
 			supplier1.start();
 			
 			//customers 

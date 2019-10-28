@@ -36,6 +36,7 @@ public class manufacturerAgent extends Agent
 	private ArrayList<AID> suppliers = new ArrayList<>();
 	private ArrayList<Order> openOrders = new ArrayList<>();
 	private AID tickerAgent;
+	private int day = 0;
 	
 	@Override 
 	protected void setup()
@@ -96,6 +97,7 @@ public class manufacturerAgent extends Agent
 				}
 				if(msg.getContent().equals("new day"))
 				{
+					day++;
 					/*
 					 * Add customer behaviours here
 					 */
@@ -232,6 +234,8 @@ public class manufacturerAgent extends Agent
 			if(numOrders == customers.size())
 			{
 				openOrders.add(bestOrder);
+				System.out.println("Manufacturer has accepted an order from " + bestOrder.getCustomer());
+				System.out.print("");
 				
 				for (int i = 0; i < customersOrders.size(); i++)
 				{
