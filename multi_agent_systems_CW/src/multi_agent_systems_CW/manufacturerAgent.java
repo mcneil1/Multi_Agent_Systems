@@ -2,8 +2,11 @@ package multi_agent_systems_CW;
 
 import java.util.ArrayList;
 
+import jade.content.Concept;
+import jade.content.ContentElement;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
@@ -14,17 +17,32 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentController;
+import mas_ontology.ECommerceOntology;
+import mas_ontology_elements.Order;
+import jade.content.lang.Codec;
+import jade.content.lang.Codec.CodecException;
+import jade.content.lang.sl.SLCodec;
+import jade.content.onto.Ontology;
+import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
 
 
 public class manufacturerAgent extends Agent
 {
+	private Codec codec = new SLCodec();
+	private Ontology ontology = ECommerceOntology.getInstance();
+	
 	private ArrayList<AID> customers = new ArrayList<>();
 	private ArrayList<AID> suppliers = new ArrayList<>();
+	private ArrayList<Order> openOrders = new ArrayList<>();
 	private AID tickerAgent;
 	
 	@Override 
 	protected void setup()
 	{
+		getContentManager().registerLanguage(codec);
+		getContentManager().registerOntology(ontology);
+		
 		//add agent to yellow pages
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
@@ -86,6 +104,7 @@ public class manufacturerAgent extends Agent
 					SequentialBehaviour dailyActivity = new SequentialBehaviour();
 					//sub-behaviours will execute in the order they are added
 					dailyActivity.addSubBehaviour(new FindAgents(myAgent));
+					dailyActivity.addSubBehaviour(new AcceptOrder(myAgent));
 					dailyActivity.addSubBehaviour(new EndDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
@@ -145,6 +164,83 @@ public class manufacturerAgent extends Agent
 				fe.printStackTrace();
 			}
 		}
+	}
+	
+	
+	public class AcceptOrder extends Behaviour
+	{
+
+		private int numOrders;
+		private Order bestOrder;
+		private AID bestCust;
+		
+		public AcceptOrder(Agent a)
+		{
+			super(a);
+		}
+		
+		@Override
+		public void action() 
+		{
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
+			ACLMessage order = myAgent.receive(mt);
+			if(order != null)
+			{
+				numOrders++;
+				try
+				{
+					ContentElement ce = null;
+					
+					ce = getContentManager().extractContent(order);
+					if(ce instanceof Action)
+					{
+						Concept action = ((Action)ce).getAction();
+						if(action instanceof Order)
+						{
+							Order custOrder = (Order)action;
+							if(bestOrder == null)
+							{
+								bestOrder = custOrder;
+								bestCust = custOrder.getCustomer();
+							}
+							else if(custOrder.getPrice() > bestOrder.getPrice())
+							{
+								bestOrder = custOrder;
+								bestCust = custOrder.getCustomer();
+							}
+						}
+					}
+				}
+				catch (CodecException ce) 
+				{
+					ce.printStackTrace();
+				}
+				catch (OntologyException oe) 
+				{
+					oe.printStackTrace();
+				}
+			}
+			else 
+			{
+				block();
+			}
+			
+			if(numOrders == customers.size())
+			{
+				System.out.println("Order accepted from: " + bestCust);
+				System.out.println("Phone: " + bestOrder.getPhone().getScreen().getSize() + " " + bestOrder.getPhone().getRam().getSize()
+						+ " " + bestOrder.getPhone().getStorage().getSize() + " " + bestOrder.getPhone().getBattery().getSize());
+				System.out.println("Due date: " + bestOrder.getDueDate() + ", Price: " + bestOrder.getPrice() + ", Late fee: " + bestOrder.getLateFee()
+										+ ", Quantity: " +bestOrder.getQuantity());
+			} 
+		}
+
+		@Override
+		public boolean done() 
+		{
+			return numOrders == customers.size();
+		}
+		
 	}
 	
 	

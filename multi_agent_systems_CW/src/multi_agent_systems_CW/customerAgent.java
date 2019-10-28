@@ -9,6 +9,7 @@ import jade.content.lang.Codec.CodecException;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
@@ -250,9 +251,14 @@ public class customerAgent extends Agent
 			order.setPrice(price);
 			order.setQuantity(quantity);
 			
+			Action myOrder = new Action();
+			myOrder.setAction(order);
+			myOrder.setActor(manufacturer);
+
+			
 			try
 			{
-				getContentManager().fillContent(msg, order);
+				getContentManager().fillContent(msg, myOrder);
 				send(msg);
 			}
 			catch (CodecException ce) 
