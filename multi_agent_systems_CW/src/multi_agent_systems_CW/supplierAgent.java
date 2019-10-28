@@ -26,7 +26,7 @@ public class supplierAgent extends Agent
 	private AID tickerAgent;
 	private AID manufacturer;
 	
-	private HashMap<String, Integer> itemsForSale = new HashMap<>();
+	private HashMap<Component, Integer> itemsForSale = new HashMap<>();
 	private int deliverySpeed = 0;
 	
 	@Override
@@ -145,28 +145,30 @@ public class supplierAgent extends Agent
 				{
 					Screen screen = new Screen();
 					screen = (Screen) comp[i];
-					itemsForSale.put(screen.getSize(), price[i]);
+					itemsForSale.put(screen, price[i]);
 				}
 				if(comp[i].getClass().toString().equals("class mas_ontology_elements.Storage"))
 				{
 					Storage store = new Storage();
 					store = (Storage) comp[i];
-					itemsForSale.put(store.getSize(), price[i]);
+					itemsForSale.put(store, price[i]);
 				}
 				if(comp[i].getClass().toString().equals("class mas_ontology_elements.RAM"))
 				{
 					RAM ram = new RAM();
 					ram = (RAM) comp[i];
-					itemsForSale.put(ram.getSize(), price[i]);
+					itemsForSale.put(ram, price[i]);
 				}
 				if(comp[i].getClass().toString().equals("class mas_ontology_elements.Battery"))
 				{
 					Battery battery = new Battery();
 					battery = (Battery) comp[i];
-					itemsForSale.put(battery.getSize(), price[i]);
+					itemsForSale.put(battery, price[i]);
 				}
 			}
 			deliverySpeed = delivery;
+			
+
 				
 		}
 		

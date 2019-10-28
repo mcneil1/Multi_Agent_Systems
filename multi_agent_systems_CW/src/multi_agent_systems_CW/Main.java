@@ -91,9 +91,6 @@ public class Main
 			AgentController customer3 = myContainer.createNewAgent("customer3", customerAgent.class.getCanonicalName(), null);
 			customer3.start();
 			
-			/*
-			 * add agents below
-			 */
 		}
 		catch (Exception e)
 		{

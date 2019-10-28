@@ -1,6 +1,7 @@
 package multi_agent_systems_CW;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import jade.content.Concept;
 import jade.content.ContentElement;
@@ -18,7 +19,13 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentController;
 import mas_ontology.ECommerceOntology;
+import mas_ontology_elements.Battery;
+import mas_ontology_elements.Component;
 import mas_ontology_elements.Order;
+import mas_ontology_elements.Owns;
+import mas_ontology_elements.RAM;
+import mas_ontology_elements.Screen;
+import mas_ontology_elements.Storage;
 import jade.content.lang.Codec;
 import jade.content.lang.Codec.CodecException;
 import jade.content.lang.sl.SLCodec;
@@ -35,6 +42,7 @@ public class manufacturerAgent extends Agent
 	private ArrayList<AID> customers = new ArrayList<>();
 	private ArrayList<AID> suppliers = new ArrayList<>();
 	private ArrayList<Order> openOrders = new ArrayList<>();
+	private HashMap<Component, Integer> toBuy = new HashMap<>();
 	private AID tickerAgent;
 	private int day = 0;
 	
@@ -107,6 +115,7 @@ public class manufacturerAgent extends Agent
 					//sub-behaviours will execute in the order they are added
 					dailyActivity.addSubBehaviour(new FindAgents(myAgent));
 					dailyActivity.addSubBehaviour(new AcceptOrder(myAgent));
+					dailyActivity.addSubBehaviour(new BuyComponents());
 					dailyActivity.addSubBehaviour(new EndDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
@@ -212,6 +221,7 @@ public class manufacturerAgent extends Agent
 							else if(custOrder.getPrice() > bestOrder.getPrice())
 							{
 								bestOrder = custOrder;
+								
 							}
 						}
 					}
@@ -234,6 +244,48 @@ public class manufacturerAgent extends Agent
 			if(numOrders == customers.size())
 			{
 				openOrders.add(bestOrder);
+				Screen screen = bestOrder.getPhone().getScreen();
+				RAM ram = bestOrder.getPhone().getRam();
+				Storage storage = bestOrder.getPhone().getStorage();
+				Battery battery = bestOrder.getPhone().getBattery();
+				int quantity = bestOrder.getQuantity();
+				
+				toBuy.put(screen, 25);
+				
+				if(toBuy.containsKey(screen))
+				{
+					toBuy.put(screen, (toBuy.get(screen) + quantity));
+				}
+				else
+				{
+					toBuy.put(screen, quantity);
+				}
+				if(toBuy.containsKey(ram))
+				{
+					toBuy.put(ram, (toBuy.get(ram) + quantity));
+				}
+				else
+				{
+					toBuy.put(ram, quantity);
+				}
+				if(toBuy.containsKey(storage))
+				{
+					toBuy.put(storage, (toBuy.get(storage) + quantity));
+				}
+				else
+				{
+					toBuy.put(storage, quantity);
+				}
+				if(toBuy.containsKey(battery))
+				{
+					toBuy.put(battery, (toBuy.get(battery) + quantity));
+				}
+				else
+				{
+					toBuy.put(battery, quantity);
+				}
+				
+				
 				System.out.println("Manufacturer has accepted an order from " + bestOrder.getCustomer());
 				System.out.print("");
 				
@@ -305,6 +357,55 @@ public class manufacturerAgent extends Agent
 		public boolean done() 
 		{
 			return numOrders == customers.size();
+		}
+		
+	}
+	
+	
+	public class BuyComponents extends Behaviour
+	{
+		int sent = 0;
+		@Override
+		public void action() 
+		{
+			
+			
+			for(Component key : toBuy.keySet())
+			{
+				ACLMessage msg = new ACLMessage(ACLMessage.QUERY_IF);
+				msg.setLanguage(codec.getName());
+				msg.setOntology(ontology.getName());
+				
+				Owns owns = new Owns();
+				owns.setComponent(key);
+				
+				for(int i = 0; i < suppliers.size(); i++)
+				{
+					msg.addReceiver(suppliers.get(i));
+					owns.setOwner(suppliers.get(i));
+				}
+				try 
+				{
+					// Let JADE convert from Java objects to string
+					getContentManager().fillContent(msg, owns);
+					send(msg);
+					sent++;
+				}
+				catch (CodecException ce) {
+					ce.printStackTrace();
+				}
+				catch (OntologyException oe) {
+					oe.printStackTrace();
+				} 
+
+			}
+
+		}
+
+		@Override
+		public boolean done() 
+		{
+			return sent == toBuy.size();
 		}
 		
 	}
