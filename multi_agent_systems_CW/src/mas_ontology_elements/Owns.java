@@ -7,6 +7,7 @@ public class Owns implements Predicate
 {
 	private AID owner;
 	private Component component;
+	private int deliverySpeed;
 	
 	public AID getOwner()
 	{
@@ -26,5 +27,15 @@ public class Owns implements Predicate
 	public void setComponent(Component component)
 	{
 		this.component = component;
+	}
+	
+	public int getDeliverySpeed()
+	{
+		return deliverySpeed;
+	}
+	
+	public void setDeliverySpeed(int deliverySpeed)
+	{
+		this.deliverySpeed = deliverySpeed;
 	}
 }
