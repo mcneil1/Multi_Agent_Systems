@@ -29,6 +29,7 @@ public class Main
 			AgentController manufacturer = myContainer.createNewAgent("manufacturer", manufacturerAgent.class.getCanonicalName(), null);
 			manufacturer.start();
 			
+			
 			//suppliers
 			Storage storage1 = new Storage();
 			storage1.setSize("64Gb");
@@ -61,9 +62,24 @@ public class Main
 						deliverySpeed1
 				};
 			
-			
 			AgentController supplier1 = myContainer.createNewAgent("supplier1", supplierAgent.class.getCanonicalName(), supplier1List);
 			supplier1.start();
+			
+			
+			Component[] components2 = {storage1, storage2, ram1, ram2};
+			int[] prices2 = {15, 40, 20, 35};
+			int deliverySpeed2 = 4;
+			
+			Object[] supplier2List =
+				{
+						components2,
+						prices2,
+						deliverySpeed2
+				};
+			AgentController supplier2 = myContainer.createNewAgent("supplier2", supplierAgent.class.getCanonicalName(), supplier2List);
+			supplier2.start();
+			
+			
 			
 			//customers 
 			AgentController customer1 = myContainer.createNewAgent("customer1", customerAgent.class.getCanonicalName(), null);

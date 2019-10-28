@@ -167,7 +167,7 @@ public class supplierAgent extends Agent
 				}
 			}
 			deliverySpeed = delivery;
-			
+				
 		}
 		
 	}
