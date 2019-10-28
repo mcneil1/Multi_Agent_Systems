@@ -38,6 +38,24 @@ public class supplierAgent extends Agent
 			e.printStackTrace();
 		}
 		
+		//get manufacturer
+		DFAgentDescription manufacturerTemplate = new DFAgentDescription();
+		ServiceDescription manufacSD = new ServiceDescription();
+		manufacSD.setType("manufacturer");
+		manufacturerTemplate.addServices(manufacSD);
+		try
+		{
+			DFAgentDescription[] agent = DFService.search(this, manufacturerTemplate);
+			for(int i = 0; i<agent.length; i++)
+			{
+				manufacturer = agent[i].getName();
+			}
+		}
+		catch(FIPAException e)
+		{
+			e.printStackTrace();
+		}
+		
 		addBehaviour(new TickerWaiter(this));
 		
 	}

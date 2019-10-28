@@ -140,7 +140,7 @@ public class manufacturerAgent extends Agent
 			
 			DFAgentDescription supplierTemplate = new DFAgentDescription();
 			ServiceDescription ssd = new ServiceDescription();
-			csd.setType("supplier");
+			ssd.setType("supplier");
 			supplierTemplate.addServices(ssd);
 			
 			try
@@ -166,13 +166,17 @@ public class manufacturerAgent extends Agent
 		}
 	}
 	
-	
+	/*
+	 * The AcceptOrder behaviour receives all order proposals from the customerAgents
+	 * it decides which to accept (based on highest price) and adds that order to the 
+	 * openOrder list. each customer is either sent a REFUSE or ACCEPT_PROPOSAL reply.
+	 */
 	public class AcceptOrder extends Behaviour
 	{
 
 		private int numOrders;
 		private Order bestOrder;
-		private AID bestCust;
+		private ArrayList<Order> customersOrders = new ArrayList<>();
 		
 		public AcceptOrder(Agent a)
 		{
@@ -198,15 +202,14 @@ public class manufacturerAgent extends Agent
 						if(action instanceof Order)
 						{
 							Order custOrder = (Order)action;
+							customersOrders.add(custOrder);
 							if(bestOrder == null)
 							{
 								bestOrder = custOrder;
-								bestCust = custOrder.getCustomer();
 							}
 							else if(custOrder.getPrice() > bestOrder.getPrice())
 							{
 								bestOrder = custOrder;
-								bestCust = custOrder.getCustomer();
 							}
 						}
 					}
@@ -225,14 +228,73 @@ public class manufacturerAgent extends Agent
 				block();
 			}
 			
+			//Send replies to each customer
 			if(numOrders == customers.size())
 			{
-				System.out.println("Order accepted from: " + bestCust);
-				System.out.println("Phone: " + bestOrder.getPhone().getScreen().getSize() + " " + bestOrder.getPhone().getRam().getSize()
-						+ " " + bestOrder.getPhone().getStorage().getSize() + " " + bestOrder.getPhone().getBattery().getSize());
-				System.out.println("Due date: " + bestOrder.getDueDate() + ", Price: " + bestOrder.getPrice() + ", Late fee: " + bestOrder.getLateFee()
-										+ ", Quantity: " +bestOrder.getQuantity());
-			} 
+				openOrders.add(bestOrder);
+				
+				for (int i = 0; i < customersOrders.size(); i++)
+				{
+					if(customersOrders.get(i) == bestOrder)
+					{
+						ACLMessage reply = new ACLMessage(ACLMessage.ACCEPT_PROPOSAL);
+						reply.addReceiver(customersOrders.get(i).getCustomer());
+						reply.setConversationId("order-reply");
+						reply.setLanguage(codec.getName());
+						reply.setOntology(ontology.getName());
+						
+						Order ord = customersOrders.get(i);
+						
+						Action sendReply = new Action();
+						sendReply.setAction(ord);
+						sendReply.setActor(customersOrders.get(i).getCustomer());
+						
+						try
+						{
+							getContentManager().fillContent(reply, sendReply);
+							send(reply);
+						}
+						catch (CodecException ce) 
+						{
+							ce.printStackTrace();
+						}
+						catch (OntologyException oe) 
+						{
+							oe.printStackTrace();
+						} 
+						
+					}
+					else
+					{
+						ACLMessage reply = new ACLMessage(ACLMessage.REFUSE);
+						reply.addReceiver(customersOrders.get(i).getCustomer());
+						reply.setConversationId("order-reply");
+						reply.setLanguage(codec.getName());
+						reply.setOntology(ontology.getName());
+						
+						Order ord = customersOrders.get(i);
+						
+						Action sendReply = new Action();
+						sendReply.setAction(ord);
+						sendReply.setActor(customersOrders.get(i).getCustomer());
+						
+						try
+						{
+							getContentManager().fillContent(reply, sendReply);
+							send(reply);
+						}
+						catch (CodecException ce) 
+						{
+							ce.printStackTrace();
+						}
+						catch (OntologyException oe) 
+						{
+							oe.printStackTrace();
+						} 
+					}
+					
+				}
+			}
 		}
 
 		@Override

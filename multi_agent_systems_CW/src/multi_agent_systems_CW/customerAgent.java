@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import jade.content.Concept;
+import jade.content.ContentElement;
 import jade.content.lang.Codec;
 import jade.content.lang.Codec.CodecException;
 import jade.content.lang.sl.SLCodec;
@@ -35,8 +37,10 @@ public class customerAgent extends Agent
 {
 	private Codec codec = new SLCodec();
 	private Ontology ontology = ECommerceOntology.getInstance();
+	
 	private AID tickerAgent;
 	private AID manufacturer;
+	private ArrayList<Order> openOrders = new ArrayList<>();
 	private int day = 0;
 	
 	@Override
@@ -127,6 +131,7 @@ public class customerAgent extends Agent
 					 * 
 					 */
 					myAgent.addBehaviour(new SendOrder());
+					myAgent.addBehaviour(new AcceptRefuseListener());
 					ArrayList<Behaviour> cyclicBehaviours = new ArrayList<>();
 					myAgent.addBehaviour(new EndDayListener(myAgent, cyclicBehaviours));
 					
@@ -271,6 +276,57 @@ public class customerAgent extends Agent
 			} 
 			
 		}
+	}
+	
+	
+	public class AcceptRefuseListener extends OneShotBehaviour
+	{
+		@Override
+		public void action() 
+		{
+			MessageTemplate mt = MessageTemplate.MatchConversationId("order-reply");
+			ACLMessage reply = myAgent.receive(mt);
+			if(reply != null)
+			{
+				if(reply.getPerformative() == ACLMessage.ACCEPT_PROPOSAL)
+				{
+					try
+					{
+						ContentElement ce = null;
+						
+						ce = getContentManager().extractContent(reply);
+						if(ce instanceof Action)
+						{
+							Concept action = ((Action)ce).getAction();
+							if(action instanceof Order)
+							{
+								Order order = (Order)action;
+								openOrders.add(order);
+								
+							}
+						}
+					}
+					catch (CodecException ce) 
+					{
+						ce.printStackTrace();
+					}
+					catch (OntologyException oe) 
+					{
+						oe.printStackTrace();
+					}
+				}
+				else
+				{
+					return;
+				}
+			}
+			else
+			{
+				block();
+			}
+			
+		}
+		
 	}
 	
 	
