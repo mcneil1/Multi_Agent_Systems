@@ -33,23 +33,31 @@ public class Main
 			//suppliers
 			Storage storage1 = new Storage();
 			storage1.setSize("64Gb");
+			storage1.setId(3);
 			Storage storage2 = new Storage();
 			storage2.setSize("256Gb");
+			storage2.setId(4);
 			
 			Screen screen1 = new Screen();
 			screen1.setSize("5' Screen");
+			screen1.setId(1);
 			Screen screen2 = new Screen();
 			screen2.setSize("7' Screen");
+			screen2.setId(2);
 			
 			Battery battery1 = new Battery();
 			battery1.setSize("2000mAh");
+			battery1.setId(5);
 			Battery battery2 = new Battery();
 			battery2.setSize("3000mAh");
+			battery2.setId(6);
 			
 			RAM ram1 = new RAM();
 			ram1.setSize("4Gb");
+			ram1.setId(7);
 			RAM ram2 = new RAM();
 			ram2.setSize("8Gb");
+			ram2.setId(8);
 				
 			Component[] components1 = {screen1, screen2, storage1, storage2, ram1, ram2, battery1, battery2};
 			int[] prices1 = {100, 150, 25, 50, 30, 60, 70, 100};
@@ -77,7 +85,7 @@ public class Main
 						deliverySpeed2
 				};
 			AgentController supplier2 = myContainer.createNewAgent("supplier2", supplierAgent.class.getCanonicalName(), supplier2List);
-			supplier2.start();
+			//supplier2.start();
 			
 			
 			

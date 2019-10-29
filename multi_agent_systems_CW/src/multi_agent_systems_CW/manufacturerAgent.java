@@ -115,7 +115,7 @@ public class manufacturerAgent extends Agent
 					//sub-behaviours will execute in the order they are added
 					dailyActivity.addSubBehaviour(new FindAgents(myAgent));
 					dailyActivity.addSubBehaviour(new AcceptOrder(myAgent));
-					dailyActivity.addSubBehaviour(new BuyComponents());
+					dailyActivity.addSubBehaviour(new QueryComponents());
 					dailyActivity.addSubBehaviour(new EndDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
@@ -218,7 +218,7 @@ public class manufacturerAgent extends Agent
 							{
 								bestOrder = custOrder;
 							}
-							else if(custOrder.getPrice() > bestOrder.getPrice())
+							else if((custOrder.getPrice() * custOrder.getQuantity()) > (bestOrder.getPrice() * bestOrder.getQuantity()))
 							{
 								bestOrder = custOrder;
 								
@@ -362,7 +362,7 @@ public class manufacturerAgent extends Agent
 	}
 	
 	
-	public class BuyComponents extends Behaviour
+	public class QueryComponents extends Behaviour
 	{
 		int sent = 0;
 		@Override

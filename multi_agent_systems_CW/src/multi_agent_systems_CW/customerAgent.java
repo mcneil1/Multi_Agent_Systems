@@ -176,9 +176,11 @@ public class customerAgent extends Agent
 				phone.setType("Small phone");
 				
 				screen.setSize("5' Screen");
+				screen.setId(1);
 				phone.setScreen(screen);
 				
 				battery.setSize("2000mAh");
+				battery.setId(5);
 				phone.setBattery(battery);
 			}
 			else
@@ -186,31 +188,37 @@ public class customerAgent extends Agent
 				phone.setType("Phablet");
 				
 				screen.setSize("7' Screen");
+				screen.setId(2);
 				phone.setScreen(screen);
 				
 				battery.setSize("3000mAh");
+				battery.setId(6);
 				phone.setBattery(battery);
 			}
 			
 			if(storageType < 0.5)
 			{
 				storage.setSize("64Gb");
+				storage.setId(3);
 				phone.setStorage(storage);
 			}
 			else
 			{
 				storage.setSize("256Gb");
+				storage.setId(4);
 				phone.setStorage(storage);
 			}
 			
 			if(ramType < 0.5)
 			{
 				ram.setSize("4Gb");
+				ram.setId(7);
 				phone.setRam(ram);
 			}
 			else
 			{
 				ram.setSize("8Gb");
+				ram.setId(8);
 				phone.setRam(ram);
 			}
 			
@@ -222,44 +230,22 @@ public class customerAgent extends Agent
 			msg.setOntology(ontology.getName());
 			
 			//produce int variables for order content randomly
-			int dueDate = 0;
-			int lateFee = 0;
-			int quantity = 0;
-			int price = 0;
-			
-			for(int i = 0; i < 4; i++)
-			{
-				Random r = new Random();
-				if(i == 0)
-				{
-					dueDate = day + r.nextInt(7) + 1;
-				}
-				if(i == 1)
-				{
-					lateFee = r.nextInt(1000)+1;
-				}
-				if(i == 2)
-				{
-					quantity = r.nextInt(50 - 1) + 1;
-				}
-				if(i == 3)
-				{
-					price = ((r.nextInt((500 - 200)+1) + 200) * quantity);
-				}
-			}
+			int dueDate = (int) Math.floor(1 + 10 * Math.random());
+			int quantity = (int) Math.floor(1 + 50 * Math.random());
+			int price = (int) Math.floor(100 + 500 * Math.random());
+			int lateFee = (int) (Math.floor(1 + 50 * Math.random()) * quantity) ;
 			
 			Order order = new Order();
 			order.setCustomer(myAgent.getAID());
 			order.setPhone(phone);
-			order.setDueDate(dueDate);
+			order.setDueDate(dueDate + day);
 			order.setLateFee(lateFee);
 			order.setPrice(price);
 			order.setQuantity(quantity);
 			
 			Action myOrder = new Action();
 			myOrder.setAction(order);
-			myOrder.setActor(manufacturer);
-
+			myOrder.setActor(manufacturer);	
 			
 			try
 			{
