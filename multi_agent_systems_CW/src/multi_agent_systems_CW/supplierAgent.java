@@ -220,13 +220,15 @@ public class supplierAgent extends Agent
 						if(itemsForSale.containsKey(comp.getId()))
 						{
 							owns.setPrice(itemsForSale.get(comp.getId()));
-							System.out.println("Price: " + owns.getPrice());
+							owns.setDeliverySpeed(deliverySpeed);
 							getContentManager().fillContent(reply, owns);
 							send(reply);
+							
+							System.out.println(owns.getDeliverySpeed());
 						}
 						else
 						{
-							send(msg);
+							send(reply);
 						}
 					}
 				}
