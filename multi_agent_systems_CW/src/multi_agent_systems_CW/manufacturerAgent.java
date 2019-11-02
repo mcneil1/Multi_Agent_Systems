@@ -1,5 +1,7 @@
 package multi_agent_systems_CW;
 
+
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -43,9 +45,12 @@ public class manufacturerAgent extends Agent
 	private ArrayList<AID> suppliers = new ArrayList<>();
 	private ArrayList<Order> openOrders = new ArrayList<>();
 	private HashMap<Component, Integer> toBuy = new HashMap<>();
+	private Order currentOrder = new Order();
 	private AID tickerAgent;
 	private int day = 0;
 	
+
+
 	@Override 
 	protected void setup()
 	{
@@ -116,6 +121,7 @@ public class manufacturerAgent extends Agent
 					dailyActivity.addSubBehaviour(new FindAgents(myAgent));
 					dailyActivity.addSubBehaviour(new AcceptOrder(myAgent));
 					dailyActivity.addSubBehaviour(new QueryComponents());
+					dailyActivity.addSubBehaviour(new BuyComponents());
 					dailyActivity.addSubBehaviour(new EndDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
@@ -244,6 +250,7 @@ public class manufacturerAgent extends Agent
 			if(numOrders == customers.size())
 			{
 				openOrders.add(bestOrder);
+				currentOrder = bestOrder;
 				Screen screen = bestOrder.getPhone().getScreen();
 				RAM ram = bestOrder.getPhone().getRam();
 				Storage storage = bestOrder.getPhone().getStorage();
@@ -408,6 +415,72 @@ public class manufacturerAgent extends Agent
 			return sent == toBuy.size();
 		}
 		
+	}
+	
+	
+	public class BuyComponents extends Behaviour
+	{
+		int noReplies = 0;
+		
+		public void action()
+		{
+			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.CFP),
+					MessageTemplate.MatchPerformative(ACLMessage.REFUSE));
+			ACLMessage msg = myAgent.receive(mt);
+			if(msg!=null)
+			{
+				noReplies++;
+				if(msg.getPerformative() == ACLMessage.CFP)
+				{
+
+
+					try
+					{
+						ContentElement ce = null;
+
+						ce = getContentManager().extractContent(msg);
+						if(ce instanceof Owns)
+						{
+							Owns owns = (Owns) ce;
+							
+							//if the component is a screen or a battery supplier 1 will be supplier
+							if(owns.getComponent().getId() == 1 || owns.getComponent().getId() == 2 || owns.getComponent().getId() == 5 || owns.getComponent().getId() == 6)
+							{
+								System.out.println("Ordering " + owns.getComponent() + " from " + owns.getOwner());
+							}
+							//if the due date is in 4 or more days use supplier 2
+							else if(owns.getDeliverySpeed() == 4 && (currentOrder.getDueDate() - day >= 4))
+							{
+								System.out.println("Ordering " + owns.getComponent() + " from " + owns.getOwner());
+							}
+							//if the due date is in less than 4 days use supplier 1
+							else if(owns.getDeliverySpeed() == 1 && (currentOrder.getDueDate() - day < 4))
+							{
+								System.out.println("Ordering " + owns.getComponent() + " from " + owns.getOwner());
+							}
+							
+						}
+					}
+					catch (CodecException ce) {
+						ce.printStackTrace();
+					}
+					catch (OntologyException oe) {
+						oe.printStackTrace();
+					}
+				}
+			}
+			else
+			{
+				block();
+			}
+		}
+
+		
+		public boolean done()
+		{
+			return noReplies == (toBuy.size() * 2);
+			
+		}
 	}
 	
 	

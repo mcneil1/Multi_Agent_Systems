@@ -212,23 +212,31 @@ public class supplierAgent extends Agent
 						Owns owns = (Owns) ce;
 						Component comp = owns.getComponent();
 						
-						ACLMessage reply = new ACLMessage(ACLMessage.INFORM);
+						Owns owner = new Owns();
+						
+						ACLMessage reply = new ACLMessage(ACLMessage.CFP);
 						reply.addReceiver(msg.getSender());
 						reply.setLanguage(codec.getName());
 						reply.setOntology(ontology.getName());
 						
 						if(itemsForSale.containsKey(comp.getId()))
 						{
-							owns.setPrice(itemsForSale.get(comp.getId()));
-							owns.setDeliverySpeed(deliverySpeed);
-							getContentManager().fillContent(reply, owns);
+							owner.setComponent(comp);
+							owner.setOwner(getAID());
+							owner.setPrice(itemsForSale.get(comp.getId()));
+							owner.setDeliverySpeed(deliverySpeed);
+							
+							getContentManager().fillContent(reply, owner);
 							send(reply);
 							
-							System.out.println(owns.getDeliverySpeed());
+							
 						}
 						else
 						{
-							send(reply);
+							ACLMessage refuse = new ACLMessage(ACLMessage.REFUSE);
+							refuse.addReceiver(msg.getSender());
+							refuse.setContent("We do not sell that item");
+							send(refuse);
 						}
 					}
 				}

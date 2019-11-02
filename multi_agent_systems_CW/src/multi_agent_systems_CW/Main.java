@@ -85,7 +85,7 @@ public class Main
 						deliverySpeed2
 				};
 			AgentController supplier2 = myContainer.createNewAgent("supplier2", supplierAgent.class.getCanonicalName(), supplier2List);
-			//supplier2.start();
+			supplier2.start();
 			
 			
 			
