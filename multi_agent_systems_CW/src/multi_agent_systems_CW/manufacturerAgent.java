@@ -27,6 +27,7 @@ import mas_ontology_elements.Order;
 import mas_ontology_elements.Owns;
 import mas_ontology_elements.RAM;
 import mas_ontology_elements.Screen;
+import mas_ontology_elements.Sell;
 import mas_ontology_elements.Storage;
 import jade.content.lang.Codec;
 import jade.content.lang.Codec.CodecException;
@@ -446,17 +447,71 @@ public class manufacturerAgent extends Agent
 							//if the component is a screen or a battery supplier 1 will be supplier
 							if(owns.getComponent().getId() == 1 || owns.getComponent().getId() == 2 || owns.getComponent().getId() == 5 || owns.getComponent().getId() == 6)
 							{
-								System.out.println("Ordering " + owns.getComponent() + " from " + owns.getOwner());
+								ACLMessage buy = new ACLMessage(ACLMessage.PROPOSE);
+								buy.addReceiver(owns.getOwner());
+								buy.setLanguage(codec.getName());
+								buy.setOntology(ontology.getName());
+								
+								Sell sell = new Sell();
+								sell.setBuyer(getAID());
+								sell.setComponent(owns.getComponent());
+								sell.setQuantity(currentOrder.getQuantity());
+								
+								Action myOrder = new Action();
+								myOrder.setAction(sell);
+								myOrder.setActor(owns.getOwner());
+								
+
+								getContentManager().fillContent(buy, myOrder);
+								send(buy);
+								System.out.println("Order for " + currentOrder.getQuantity() + " " + owns.getComponent() + " sent to " + owns.getOwner());
+	
 							}
 							//if the due date is in 4 or more days use supplier 2
-							else if(owns.getDeliverySpeed() == 4 && (currentOrder.getDueDate() - day >= 4))
+							else if(owns.getDeliverySpeed() == 4 && ((currentOrder.getDueDate() - day) >= 4))
 							{
-								System.out.println("Ordering " + owns.getComponent() + " from " + owns.getOwner());
+								ACLMessage buy = new ACLMessage(ACLMessage.PROPOSE);
+								buy.addReceiver(owns.getOwner());
+								buy.setLanguage(codec.getName());
+								buy.setOntology(ontology.getName());
+								
+								Sell sell = new Sell();
+								sell.setBuyer(getAID());
+								sell.setComponent(owns.getComponent());
+								sell.setQuantity(currentOrder.getQuantity());
+								
+								Action myOrder = new Action();
+								myOrder.setAction(sell);
+								myOrder.setActor(owns.getOwner());
+								
+
+								getContentManager().fillContent(buy, myOrder);
+								send(buy);
+								System.out.println("Order for " + currentOrder.getQuantity() + " " + owns.getComponent() + " sent to " + owns.getOwner());
+
 							}
 							//if the due date is in less than 4 days use supplier 1
-							else if(owns.getDeliverySpeed() == 1 && (currentOrder.getDueDate() - day < 4))
+							else if(owns.getDeliverySpeed() == 1 && ((currentOrder.getDueDate() - day) < 4))
 							{
-								System.out.println("Ordering " + owns.getComponent() + " from " + owns.getOwner());
+								ACLMessage buy = new ACLMessage(ACLMessage.PROPOSE);
+								buy.addReceiver(owns.getOwner());
+								buy.setLanguage(codec.getName());
+								buy.setOntology(ontology.getName());
+								
+								Sell sell = new Sell();
+								sell.setBuyer(getAID());
+								sell.setComponent(owns.getComponent());
+								sell.setQuantity(currentOrder.getQuantity());
+								
+								Action myOrder = new Action();
+								myOrder.setAction(sell);
+								myOrder.setActor(owns.getOwner());
+								
+							
+								getContentManager().fillContent(buy, myOrder);
+								send(buy);
+								System.out.println("Order for " + currentOrder.getQuantity() + " " + owns.getComponent() + " sent to " + owns.getOwner());
+								
 							}
 							
 						}
@@ -473,13 +528,13 @@ public class manufacturerAgent extends Agent
 			{
 				block();
 			}
+			
 		}
 
 		
 		public boolean done()
 		{
-			return noReplies == (toBuy.size() * 2);
-			
+			return noReplies == (toBuy.size() * 3);		
 		}
 	}
 	
@@ -498,6 +553,8 @@ public class manufacturerAgent extends Agent
 			msg.addReceiver(tickerAgent);
 			msg.setContent("done");
 			myAgent.send(msg);
+			toBuy.clear();
+
 			
 			
 			//Send messages to all suppliers and customers

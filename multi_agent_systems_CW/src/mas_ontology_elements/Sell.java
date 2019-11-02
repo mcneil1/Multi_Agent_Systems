@@ -8,6 +8,8 @@ public class Sell implements AgentAction
 	private AID buyer;
 	private Component component;
 	private int deliveryDate;
+	private int quantity;
+	private int price;
 	
 	public AID getBuyer() 
 	{
@@ -39,5 +41,25 @@ public class Sell implements AgentAction
 	public void setDeliveryDate(int deliveryDate)
 	{
 		this.deliveryDate = deliveryDate;
+	}
+	
+	public int getQuantity()
+	{
+		return quantity;
+	}
+	
+	public void setQuantity(int quantity)
+	{
+		this.quantity = quantity;
+	}
+	
+	public int getPrice()
+	{
+		return price;
+	}
+	
+	public void setPrice(int price)
+	{
+		this.price = price;
 	}
 }

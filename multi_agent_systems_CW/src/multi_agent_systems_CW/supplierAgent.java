@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import jade.content.Concept;
 import jade.content.ContentElement;
 import jade.core.AID;
 import jade.core.Agent;
@@ -22,12 +23,14 @@ import mas_ontology_elements.Component;
 import mas_ontology_elements.Owns;
 import mas_ontology_elements.RAM;
 import mas_ontology_elements.Screen;
+import mas_ontology_elements.Sell;
 import mas_ontology_elements.Storage;
 import jade.content.lang.Codec;
 import jade.content.lang.Codec.CodecException;
 import jade.content.lang.sl.SLCodec;
 import jade.content.onto.Ontology;
 import jade.content.onto.OntologyException;
+import jade.content.onto.basic.Action;
 
 public class supplierAgent extends Agent
 {
@@ -39,6 +42,7 @@ public class supplierAgent extends Agent
 	
 	private HashMap<Integer, Integer> itemsForSale = new HashMap<>();
 	private int deliverySpeed = 0;
+	private int day = 0;
 	
 	@Override
 	protected void setup()
@@ -120,14 +124,18 @@ public class supplierAgent extends Agent
 				}
 				if(msg.getContent().equals("new day"))
 				{
+					day++;
 					/*
 					 * Add customer behaviours here
 					 */
 					myAgent.addBehaviour(new GetStock());
 					CyclicBehaviour ol = new OwnsListener();
 					myAgent.addBehaviour(ol);
+					CyclicBehaviour sl = new SellListener();
+					myAgent.addBehaviour(sl);
 					ArrayList<Behaviour> cyclicBehaviours = new ArrayList<>();
 					cyclicBehaviours.add(ol);
+					cyclicBehaviours.add(sl);
 					myAgent.addBehaviour(new EndDayListener(myAgent, cyclicBehaviours));
 					
 				}
@@ -250,6 +258,65 @@ public class supplierAgent extends Agent
 			else
 			{
 				block();
+			}
+		}
+		
+	}
+	
+	
+	public class SellListener extends CyclicBehaviour
+	{
+
+		@Override
+		public void action() 
+		{
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.PROPOSE);
+			ACLMessage msg = myAgent.receive(mt);
+			
+			if(msg != null)
+			{
+				try
+				{
+					ContentElement ce  = null;
+					
+					ce = getContentManager().extractContent(msg);
+					if(ce instanceof Action)
+					{
+						Concept action = ((Action)ce).getAction();
+						if(action instanceof Sell)
+						{
+							Sell sell = (Sell)action;
+							
+							if(itemsForSale.containsKey(sell.getComponent().getId()))
+							{
+								ACLMessage reply = new ACLMessage(ACLMessage.INFORM);
+								reply.addReceiver(sell.getBuyer());
+								reply.setLanguage(codec.getName());
+								reply.setOntology(ontology.getName());
+								
+								sell.setDeliveryDate(deliverySpeed+day);
+								sell.setPrice(itemsForSale.get(sell.getComponent().getId()) * sell.getQuantity());
+								
+								getContentManager().fillContent(reply, sell);
+								send(reply);
+							}
+							else
+							{
+								ACLMessage fail = new ACLMessage(ACLMessage.FAILURE);
+								fail.addReceiver(sell.getBuyer());
+								myAgent.send(fail);
+							}
+						}
+					}
+				}
+				catch (CodecException ce) 
+				{
+					ce.printStackTrace();
+				}
+				catch (OntologyException oe) 
+				{
+					oe.printStackTrace();
+				}
 			}
 		}
 		
