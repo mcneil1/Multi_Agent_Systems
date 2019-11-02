@@ -297,7 +297,11 @@ public class supplierAgent extends Agent
 								sell.setDeliveryDate(deliverySpeed+day);
 								sell.setPrice(itemsForSale.get(sell.getComponent().getId()) * sell.getQuantity());
 								
-								getContentManager().fillContent(reply, sell);
+								Action myReply = new Action();
+								myReply.setAction(sell);
+								myReply.setActor(getAID());
+								
+								getContentManager().fillContent(reply, myReply);
 								send(reply);
 							}
 							else

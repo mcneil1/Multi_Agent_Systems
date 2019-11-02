@@ -45,10 +45,13 @@ public class manufacturerAgent extends Agent
 	private ArrayList<AID> customers = new ArrayList<>();
 	private ArrayList<AID> suppliers = new ArrayList<>();
 	private ArrayList<Order> openOrders = new ArrayList<>();
+	private ArrayList<Sell> openDeliveries = new ArrayList<>();
 	private HashMap<Component, Integer> toBuy = new HashMap<>();
+	private HashMap<Integer, Integer> stockList = new HashMap<>();
 	private Order currentOrder = new Order();
 	private AID tickerAgent;
 	private int day = 0;
+	private int componentCost = 0;
 	
 
 
@@ -123,6 +126,7 @@ public class manufacturerAgent extends Agent
 					dailyActivity.addSubBehaviour(new AcceptOrder(myAgent));
 					dailyActivity.addSubBehaviour(new QueryComponents());
 					dailyActivity.addSubBehaviour(new BuyComponents());
+					dailyActivity.addSubBehaviour(new ComponentOrderListener());
 					dailyActivity.addSubBehaviour(new EndDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
@@ -534,7 +538,59 @@ public class manufacturerAgent extends Agent
 		
 		public boolean done()
 		{
-			return noReplies == (toBuy.size() * 3);		
+			return noReplies == (toBuy.size() * 2);		
+		}
+	}
+	
+	
+	public class ComponentOrderListener extends Behaviour
+	{
+		int noReplies = 0;
+		public void action()
+		{
+			MessageTemplate mt = MessageTemplate.or(MessageTemplate.MatchPerformative(ACLMessage.INFORM),
+					MessageTemplate.MatchPerformative(ACLMessage.FAILURE));
+			ACLMessage msg = myAgent.receive(mt);
+			
+			if(msg != null)
+			{
+				noReplies++;
+				if(msg.getPerformative() == ACLMessage.INFORM)
+				{
+					try
+					{
+						ContentElement ce = null;
+						
+						ce = getContentManager().extractContent(msg);
+						if(ce instanceof Action)
+						{
+							Concept action = ((Action)ce).getAction();
+							if(action instanceof Sell)
+							{
+								Sell order = (Sell)action;
+								
+								openDeliveries.add(order);								
+								componentCost += order.getPrice();
+							}
+						}
+						
+						
+					}
+					catch (CodecException ce) 
+					{
+						ce.printStackTrace();
+					}
+					catch (OntologyException oe) 
+					{
+						oe.printStackTrace();
+					}
+				}
+			}
+		}
+		
+		public boolean done()
+		{
+			return noReplies == toBuy.size();
 		}
 	}
 	
@@ -553,7 +609,12 @@ public class manufacturerAgent extends Agent
 			msg.addReceiver(tickerAgent);
 			msg.setContent("done");
 			myAgent.send(msg);
+			
+			System.out.println("Stocklist: " + openDeliveries.size());
+			System.out.println("Component cost: " + componentCost);
+			
 			toBuy.clear();
+			componentCost = 0;
 
 			
 			
