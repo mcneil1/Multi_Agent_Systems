@@ -11,6 +11,7 @@ public class Order implements AgentAction
 	private int lateFee;
 	private int quantity;
 	private int price;
+	private String id;
 	
 	public AID getCustomer()
 	{
@@ -75,5 +76,15 @@ public class Order implements AgentAction
 	public void setPrice(int price)
 	{
 		this.price = price;
+	}
+	
+	public String getId()
+	{
+		return id;
+	}
+	
+	public void setId(String id)
+	{
+		this.id = id;
 	}
 }

@@ -53,7 +53,10 @@ public class manufacturerAgent extends Agent
 	private Order currentOrder = new Order();
 	private AID tickerAgent;
 	private int day = 0;
+	private int ordersSent = 0;
+	
 	private int componentCost = 0;
+	private int orderPayment = 0;
 	
 
 
@@ -131,6 +134,7 @@ public class manufacturerAgent extends Agent
 					dailyActivity.addSubBehaviour(new ComponentOrderListener());
 					dailyActivity.addSubBehaviour(new GetDeliveries());
 					dailyActivity.addSubBehaviour(new CompleteOrder());
+					dailyActivity.addSubBehaviour(new PaymentListener());
 					dailyActivity.addSubBehaviour(new EndDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
@@ -621,7 +625,8 @@ public class manufacturerAgent extends Agent
 					{
 						if(stockList.containsKey(order.getComponent().getId()))
 						{
-							stockList.put(order.getComponent().getId(), stockList.get(order.getComponent().getId()));
+							int quantity = stockList.get(order.getComponent().getId());
+							stockList.put(order.getComponent().getId(), quantity + order.getQuantity());
 							System.out.println("Order of " + order.getQuantity() + " x " + order.getComponent() + " added to Stocklist");
 						}
 						else
@@ -632,6 +637,8 @@ public class manufacturerAgent extends Agent
 					}
 				}
 			}
+			System.out.println(stockList.keySet());
+			System.out.println(stockList.values());
 			System.out.println("");
 		}
 		
@@ -657,7 +664,7 @@ public class manufacturerAgent extends Agent
 			}
 			try
 			{
-				if(!lateOrders.isEmpty())
+				if(lateOrders.isEmpty() == false)
 				{
 					for(int i = 0; i < lateOrders.size(); i++)
 					{
@@ -666,6 +673,7 @@ public class manufacturerAgent extends Agent
 						int battery = o.getPhone().getBattery().getId();
 						int ram = o.getPhone().getRam().getId();
 						int storage = o.getPhone().getStorage().getId();
+						
 						if(o.getQuantity() < dailyLimit)
 						{
 							if(stockList.containsKey(screen) && stockList.containsKey(storage) && stockList.containsKey(ram) && stockList.containsKey(storage))
@@ -680,26 +688,32 @@ public class manufacturerAgent extends Agent
 									stockList.put(ram, (stockList.get(ram) - o.getQuantity()));
 									stockList.put(storage, (stockList.get(storage) - o.getQuantity()));
 
-									Deliver deliver = new Deliver();
-
-									ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+									ACLMessage msg = new ACLMessage(ACLMessage.CONFIRM);
 									msg.addReceiver(o.getCustomer());
 									msg.setLanguage(codec.getName());
 									msg.setOntology(ontology.getName());
-
+									
+									Deliver deliver = new Deliver();
 									deliver.setOrder(o);
-									getContentManager().fillContent(msg, deliver);
+									
+									Action myDelivery = new Action();
+									myDelivery.setAction(deliver);
+									myDelivery.setActor(getAID());
+									
+									getContentManager().fillContent(msg, myDelivery);
 									send(msg);
 									
+									ordersSent++;
 									lateOrders.remove(o);
-									System.out.println("Order for " + o.getQuantity() + " x " + o.getPhone().getType() + "'s send to " + o.getCustomer().getName());
+									System.out.println("Order for " + o.getQuantity() + " x " + o.getPhone().getType() + "s sent to " + o.getCustomer().getName());
 
 								}
 							}
 						}
 					}
 				}
-				else if(!openOrders.isEmpty())
+				
+				else if(openOrders.isEmpty() == false)
 				{
 					for(int i = 0; i < openOrders.size(); i++)
 					{
@@ -708,6 +722,7 @@ public class manufacturerAgent extends Agent
 						int battery = o.getPhone().getBattery().getId();
 						int ram = o.getPhone().getRam().getId();
 						int storage = o.getPhone().getStorage().getId();
+						
 						if(o.getQuantity() < dailyLimit)
 						{
 							if(stockList.containsKey(screen) && stockList.containsKey(storage) && stockList.containsKey(ram) && stockList.containsKey(storage))
@@ -722,19 +737,24 @@ public class manufacturerAgent extends Agent
 									stockList.put(ram, (stockList.get(ram) - o.getQuantity()));
 									stockList.put(storage, (stockList.get(storage) - o.getQuantity()));
 
-									Deliver deliver = new Deliver();
-
-									ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+									ACLMessage msg = new ACLMessage(ACLMessage.CONFIRM);
 									msg.addReceiver(o.getCustomer());
 									msg.setLanguage(codec.getName());
 									msg.setOntology(ontology.getName());
 
+									Deliver deliver = new Deliver();
 									deliver.setOrder(o);
-									getContentManager().fillContent(msg, deliver);
+									
+									Action myDelivery = new Action();
+									myDelivery.setAction(deliver);
+									myDelivery.setActor(getAID());
+									
+									getContentManager().fillContent(msg, myDelivery);
 									send(msg);
 									
+									ordersSent++;
 									openOrders.remove(o);
-									System.out.println("Order for " + o.getQuantity() + " x " + o.getPhone().getType() + "s send to " + o.getCustomer().getName());
+									System.out.println("Order for " + o.getQuantity() + " x " + o.getPhone().getType() + "s sent to " + o.getCustomer().getName());
 
 								}
 							}
@@ -750,6 +770,43 @@ public class manufacturerAgent extends Agent
 			}
 		}
 
+	}
+	
+	
+	public class PaymentListener extends Behaviour
+	{
+		int msgReceived = 0;
+		
+		public void action() 
+		{
+			MessageTemplate mt = MessageTemplate.MatchConversationId("Order payment");
+			ACLMessage order = myAgent.receive(mt);
+			if(order!=null)
+			{
+				msgReceived++;
+				if(order.getPerformative() == ACLMessage.INFORM)
+				{
+
+					try
+					{
+						int payment = Integer.parseInt(order.getContent());
+						System.out.println("Payment of £" + payment + " received from " + order.getSender().getName());
+						orderPayment += payment;
+					}
+					catch (NumberFormatException nfe)
+					{
+						nfe.printStackTrace();
+					}
+					
+				}
+			}
+		}
+
+		public boolean done() 
+		{
+			return ordersSent == msgReceived;
+		}
+		
 	}
 	
 	
@@ -769,9 +826,11 @@ public class manufacturerAgent extends Agent
 			myAgent.send(msg);
 			
 			System.out.println("Component cost: " + componentCost);
+			System.out.println("");
 			
 			toBuy.clear();
 			componentCost = 0;
+			ordersSent = 0;
 
 			
 			

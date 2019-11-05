@@ -14,7 +14,7 @@ import jade.lang.acl.MessageTemplate;
 
 public class tickerAgent extends Agent
 {
-	public static final int NUM_DAYS = 5;
+	public static final int NUM_DAYS = 100;
 	
 	@Override
 	protected void setup()
@@ -165,6 +165,7 @@ public class tickerAgent extends Agent
 		@Override
 		public int onEnd()
 		{
+			System.out.println("");
 			System.out.println("End of day " + day);
 			if(day == NUM_DAYS)
 			{

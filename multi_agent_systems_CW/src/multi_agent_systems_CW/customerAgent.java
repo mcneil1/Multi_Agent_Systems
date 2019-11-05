@@ -3,6 +3,7 @@ package multi_agent_systems_CW;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 import jade.content.Concept;
 import jade.content.ContentElement;
@@ -26,6 +27,7 @@ import jade.lang.acl.MessageTemplate;
 import mas_ontology.ECommerceOntology;
 import mas_ontology_elements.Battery;
 import mas_ontology_elements.Component;
+import mas_ontology_elements.Deliver;
 import mas_ontology_elements.Order;
 import mas_ontology_elements.Phone;
 import mas_ontology_elements.RAM;
@@ -40,7 +42,7 @@ public class customerAgent extends Agent
 	
 	private AID tickerAgent;
 	private AID manufacturer;
-	private ArrayList<Order> openOrders = new ArrayList<>();
+	private ArrayList<String> openOrders = new ArrayList<>();
 	private int day = 0;
 	
 	@Override
@@ -132,7 +134,10 @@ public class customerAgent extends Agent
 					 */
 					myAgent.addBehaviour(new SendOrder());
 					myAgent.addBehaviour(new AcceptRefuseListener());
+					CyclicBehaviour rol = new ReceiveOrderListener();
+					myAgent.addBehaviour(rol);
 					ArrayList<Behaviour> cyclicBehaviours = new ArrayList<>();
+					cyclicBehaviours.add(rol);
 					myAgent.addBehaviour(new EndDayListener(myAgent, cyclicBehaviours));
 					
 				}
@@ -242,6 +247,7 @@ public class customerAgent extends Agent
 			order.setLateFee(lateFee);
 			order.setPrice(price);
 			order.setQuantity(quantity);
+			order.setId(UUID.randomUUID().toString());
 			
 			Action myOrder = new Action();
 			myOrder.setAction(order);
@@ -287,7 +293,7 @@ public class customerAgent extends Agent
 							if(action instanceof Order)
 							{
 								Order order = (Order)action;
-								openOrders.add(order);
+								openOrders.add(order.getId());
 								
 							}
 						}
@@ -311,6 +317,68 @@ public class customerAgent extends Agent
 				block();
 			}
 			
+		}
+		
+	}
+	
+	
+	public class ReceiveOrderListener extends CyclicBehaviour
+	{
+
+		public void action() 
+		{
+			MessageTemplate mt = MessageTemplate.MatchPerformative(ACLMessage.CONFIRM);
+			ACLMessage msg = myAgent.receive(mt);
+			if(msg != null)
+			{
+				try
+				{
+					ContentElement ce = null;
+					
+					ce = getContentManager().extractContent(msg);
+					if (ce instanceof Action)
+					{
+						Concept action = ((Action)ce).getAction();
+						if(action instanceof Deliver)
+						{
+							Deliver delivery = (Deliver)action;
+							
+							if(openOrders.contains(delivery.getOrder().getId()))
+							{
+								ACLMessage payment = new ACLMessage(ACLMessage.INFORM);
+								payment.addReceiver(msg.getSender());
+								payment.setConversationId("Order payment");
+								
+								int totalPrice = delivery.getOrder().getPrice() * delivery.getOrder().getQuantity();
+								
+								payment.setContent(Integer.toString(totalPrice));
+								
+								myAgent.send(payment);
+								openOrders.remove(delivery.getOrder().getId());
+							}
+							else
+							{
+								ACLMessage failure = new ACLMessage(ACLMessage.FAILURE);
+								failure.addReceiver(msg.getSender());
+								failure.setConversationId("Order payment");
+								failure.setContent("Wrong order received");
+								
+								myAgent.send(failure);
+							}
+						}
+					}
+				}
+				catch (CodecException ce) {
+					ce.printStackTrace();
+				}
+				catch (OntologyException oe) {
+					oe.printStackTrace();
+				}
+			}
+			else
+			{
+				block();
+			}
 		}
 		
 	}
