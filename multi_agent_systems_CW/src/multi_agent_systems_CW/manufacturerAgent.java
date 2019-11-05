@@ -468,7 +468,7 @@ public class manufacturerAgent extends Agent
 
 								getContentManager().fillContent(buy, myOrder);
 								send(buy);
-								System.out.println("Order for " + currentOrder.getQuantity() + " " + owns.getComponent() + " sent to " + owns.getOwner());
+
 	
 							}
 							//if the due date is in 4 or more days use supplier 2
@@ -491,7 +491,6 @@ public class manufacturerAgent extends Agent
 
 								getContentManager().fillContent(buy, myOrder);
 								send(buy);
-								System.out.println("Order for " + currentOrder.getQuantity() + " " + owns.getComponent() + " sent to " + owns.getOwner());
 
 							}
 							//if the due date is in less than 4 days use supplier 1
@@ -514,7 +513,6 @@ public class manufacturerAgent extends Agent
 							
 								getContentManager().fillContent(buy, myOrder);
 								send(buy);
-								System.out.println("Order for " + currentOrder.getQuantity() + " " + owns.getComponent() + " sent to " + owns.getOwner());
 								
 							}
 							
@@ -571,6 +569,9 @@ public class manufacturerAgent extends Agent
 								
 								openDeliveries.add(order);								
 								componentCost += order.getPrice();
+								
+								System.out.println("Components purchased! " + currentOrder.getQuantity() + " x " + order.getComponent().getClass().getName() + " purchased from " + msg.getSender());
+								System.out.println("Cost: " + order.getPrice());
 							}
 						}
 						
@@ -610,7 +611,6 @@ public class manufacturerAgent extends Agent
 			msg.setContent("done");
 			myAgent.send(msg);
 			
-			System.out.println("Stocklist: " + openDeliveries.size());
 			System.out.println("Component cost: " + componentCost);
 			
 			toBuy.clear();
