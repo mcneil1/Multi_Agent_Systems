@@ -6,12 +6,12 @@ public class Deliver implements AgentAction
 {
 	private Order order;
 	
-	private Order getOrder()
+	public Order getOrder()
 	{
 		return order;
 	}
 	
-	private void setOrder(Order order)
+	public void setOrder(Order order)
 	{
 		this.order = order;
 	}

@@ -23,6 +23,7 @@ import jade.wrapper.AgentController;
 import mas_ontology.ECommerceOntology;
 import mas_ontology_elements.Battery;
 import mas_ontology_elements.Component;
+import mas_ontology_elements.Deliver;
 import mas_ontology_elements.Order;
 import mas_ontology_elements.Owns;
 import mas_ontology_elements.RAM;
@@ -45,6 +46,7 @@ public class manufacturerAgent extends Agent
 	private ArrayList<AID> customers = new ArrayList<>();
 	private ArrayList<AID> suppliers = new ArrayList<>();
 	private ArrayList<Order> openOrders = new ArrayList<>();
+	private ArrayList<Order> lateOrders = new ArrayList<>();
 	private ArrayList<Sell> openDeliveries = new ArrayList<>();
 	private HashMap<Component, Integer> toBuy = new HashMap<>();
 	private HashMap<Integer, Integer> stockList = new HashMap<>();
@@ -127,6 +129,8 @@ public class manufacturerAgent extends Agent
 					dailyActivity.addSubBehaviour(new QueryComponents());
 					dailyActivity.addSubBehaviour(new BuyComponents());
 					dailyActivity.addSubBehaviour(new ComponentOrderListener());
+					dailyActivity.addSubBehaviour(new GetDeliveries());
+					dailyActivity.addSubBehaviour(new CompleteOrder());
 					dailyActivity.addSubBehaviour(new EndDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
@@ -298,7 +302,7 @@ public class manufacturerAgent extends Agent
 				}
 				
 				
-				System.out.println("Manufacturer has accepted an order from " + bestOrder.getCustomer());
+				System.out.println("Manufacturer has accepted an order from " + bestOrder.getCustomer().getName() + " due for day " + bestOrder.getDueDate());
 				System.out.print("");
 				
 				for (int i = 0; i < customersOrders.size(); i++)
@@ -567,10 +571,10 @@ public class manufacturerAgent extends Agent
 							{
 								Sell order = (Sell)action;
 								
-								openDeliveries.add(order);								
+								openDeliveries.add(order);
 								componentCost += order.getPrice();
 								
-								System.out.println("Components purchased! " + currentOrder.getQuantity() + " x " + order.getComponent().getClass().getName() + " purchased from " + msg.getSender());
+								System.out.println("Components purchased! " + currentOrder.getQuantity() + " x " + order.getComponent().getClass().getName() + " purchased from " + msg.getSender().getName());
 								System.out.println("Cost: " + order.getPrice());
 							}
 						}
@@ -587,12 +591,165 @@ public class manufacturerAgent extends Agent
 					}
 				}
 			}
+			else
+			{
+				block();
+			}
+			if(noReplies == toBuy.size())
+			{
+				System.out.println("");
+			}
 		}
 		
 		public boolean done()
 		{
 			return noReplies == toBuy.size();
 		}
+	}
+	
+	
+	public class GetDeliveries extends OneShotBehaviour
+	{
+
+		public void action() 
+		{
+			if(!openDeliveries.isEmpty())
+			{
+				for(Sell order : openDeliveries)
+				{
+					if(order.getDeliveryDate() == day)
+					{
+						if(stockList.containsKey(order.getComponent().getId()))
+						{
+							stockList.put(order.getComponent().getId(), stockList.get(order.getComponent().getId()));
+							System.out.println("Order of " + order.getQuantity() + " x " + order.getComponent() + " added to Stocklist");
+						}
+						else
+						{
+							stockList.put(order.getComponent().getId(), order.getQuantity());
+							System.out.println("Order of " + order.getQuantity() + " x " + order.getComponent() + " added to Stocklist");
+						}
+					}
+				}
+			}
+			System.out.println("");
+		}
+		
+	}
+	
+	
+	public class CompleteOrder extends OneShotBehaviour
+	{
+		int dailyLimit = 50;
+		public void action() 
+		{
+			if(openOrders.isEmpty() == false)
+			{
+				for(int i = 0; i < openOrders.size(); i++)
+				{
+					Order o = openOrders.get(i);
+					if(o.getDueDate() < day)
+					{
+						lateOrders.add(o);
+						openOrders.remove(o);
+					}
+				}
+			}
+			try
+			{
+				if(!lateOrders.isEmpty())
+				{
+					for(int i = 0; i < lateOrders.size(); i++)
+					{
+						Order o = lateOrders.get(i);
+						int screen = o.getPhone().getScreen().getId();
+						int battery = o.getPhone().getBattery().getId();
+						int ram = o.getPhone().getRam().getId();
+						int storage = o.getPhone().getStorage().getId();
+						if(o.getQuantity() < dailyLimit)
+						{
+							if(stockList.containsKey(screen) && stockList.containsKey(storage) && stockList.containsKey(ram) && stockList.containsKey(storage))
+							{
+								if(stockList.get(screen) >= o.getQuantity() && stockList.get(battery) >= o.getQuantity()
+										&& stockList.get(ram) >= o.getQuantity() && stockList.get(storage) >= o.getQuantity())
+								{
+									//assemble phone order
+									dailyLimit -= o.getQuantity();
+									stockList.put(screen, (stockList.get(screen) - o.getQuantity()));
+									stockList.put(battery, (stockList.get(battery) - o.getQuantity()));
+									stockList.put(ram, (stockList.get(ram) - o.getQuantity()));
+									stockList.put(storage, (stockList.get(storage) - o.getQuantity()));
+
+									Deliver deliver = new Deliver();
+
+									ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+									msg.addReceiver(o.getCustomer());
+									msg.setLanguage(codec.getName());
+									msg.setOntology(ontology.getName());
+
+									deliver.setOrder(o);
+									getContentManager().fillContent(msg, deliver);
+									send(msg);
+									
+									lateOrders.remove(o);
+									System.out.println("Order for " + o.getQuantity() + " x " + o.getPhone().getType() + "'s send to " + o.getCustomer().getName());
+
+								}
+							}
+						}
+					}
+				}
+				else if(!openOrders.isEmpty())
+				{
+					for(int i = 0; i < openOrders.size(); i++)
+					{
+						Order o = openOrders.get(i);
+						int screen = o.getPhone().getScreen().getId();
+						int battery = o.getPhone().getBattery().getId();
+						int ram = o.getPhone().getRam().getId();
+						int storage = o.getPhone().getStorage().getId();
+						if(o.getQuantity() < dailyLimit)
+						{
+							if(stockList.containsKey(screen) && stockList.containsKey(storage) && stockList.containsKey(ram) && stockList.containsKey(storage))
+							{
+								if(stockList.get(screen) >= o.getQuantity() && stockList.get(battery) >= o.getQuantity()
+										&& stockList.get(ram) >= o.getQuantity() && stockList.get(storage) >= o.getQuantity())
+								{
+									//assemble phone order
+									dailyLimit -= o.getQuantity();
+									stockList.put(screen, (stockList.get(screen) - o.getQuantity()));
+									stockList.put(battery, (stockList.get(battery) - o.getQuantity()));
+									stockList.put(ram, (stockList.get(ram) - o.getQuantity()));
+									stockList.put(storage, (stockList.get(storage) - o.getQuantity()));
+
+									Deliver deliver = new Deliver();
+
+									ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+									msg.addReceiver(o.getCustomer());
+									msg.setLanguage(codec.getName());
+									msg.setOntology(ontology.getName());
+
+									deliver.setOrder(o);
+									getContentManager().fillContent(msg, deliver);
+									send(msg);
+									
+									openOrders.remove(o);
+									System.out.println("Order for " + o.getQuantity() + " x " + o.getPhone().getType() + "s send to " + o.getCustomer().getName());
+
+								}
+							}
+						}
+					}
+				}
+			}
+			catch (CodecException ce) {
+				ce.printStackTrace();
+			}
+			catch (OntologyException oe) {
+				oe.printStackTrace();
+			}
+		}
+
 	}
 	
 	
