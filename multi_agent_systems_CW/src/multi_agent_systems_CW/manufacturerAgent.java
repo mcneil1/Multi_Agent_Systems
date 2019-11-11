@@ -55,8 +55,10 @@ public class manufacturerAgent extends Agent
 	private int day = 0;
 	private int ordersSent = 0;
 	
+	private int warehouseStorageCost = 5;
 	private int componentCost = 0;
 	private int orderPayment = 0;
+	private int totalProfit;
 	
 
 
@@ -135,6 +137,7 @@ public class manufacturerAgent extends Agent
 					dailyActivity.addSubBehaviour(new GetDeliveries());
 					dailyActivity.addSubBehaviour(new CompleteOrder());
 					dailyActivity.addSubBehaviour(new PaymentListener());
+					dailyActivity.addSubBehaviour(new ProfitCalculator());
 					dailyActivity.addSubBehaviour(new EndDay(myAgent));
 					
 					myAgent.addBehaviour(dailyActivity);
@@ -237,7 +240,7 @@ public class manufacturerAgent extends Agent
 							{
 								bestOrder = custOrder;
 							}
-							else if((custOrder.getPrice() * custOrder.getQuantity()) > (bestOrder.getPrice() * bestOrder.getQuantity()))
+							else if((custOrder.getQuantity()) < (bestOrder.getQuantity()))
 							{
 								bestOrder = custOrder;
 								
@@ -637,8 +640,8 @@ public class manufacturerAgent extends Agent
 					}
 				}
 			}
-			System.out.println(stockList.keySet());
-			System.out.println(stockList.values());
+			//System.out.println(stockList.keySet());
+			//System.out.println(stockList.values());
 			System.out.println("");
 		}
 		
@@ -810,6 +813,57 @@ public class manufacturerAgent extends Agent
 	}
 	
 	
+	public class ProfitCalculator extends OneShotBehaviour
+	{
+
+		public void action() 
+		{
+			int lateFees = 0;
+			int warehouseCost = 0;
+			int dailyProfit = 0;
+			System.out.println("");
+			System.out.println("Today's profit calculation:");
+			System.out.println("Total value of shipped orders: " + orderPayment);
+			
+			if(lateOrders.isEmpty())
+			{
+				System.out.println("Total cost of late fees: " + lateFees);
+			}
+			else
+			{
+				for(Order o : lateOrders)
+				{
+					lateFees += o.getLateFee();
+				}
+				System.out.println("Total cost of late fees: " + lateFees);
+			}
+			
+			if(stockList.isEmpty())
+			{
+				System.out.println("Total cost of warehouse storage: " + warehouseCost);
+			}
+			else
+			{
+				for(Integer v : stockList.values())
+				{
+					warehouseCost += (v * warehouseStorageCost);
+				}
+				System.out.println("Total cost of warehouse storage: " + warehouseCost);
+			}
+			
+			System.out.println("Total cost of supplies purchased: " + componentCost);
+			
+			dailyProfit = orderPayment - lateFees - warehouseCost - componentCost;
+			totalProfit += dailyProfit;
+			
+			System.out.println("Todays profit: " + dailyProfit);
+			System.out.println("Total profit: " + totalProfit);
+			
+		}
+		
+	}
+	
+	
 	public class EndDay extends OneShotBehaviour
 	{
 		public EndDay(Agent a)
@@ -825,11 +879,11 @@ public class manufacturerAgent extends Agent
 			msg.setContent("done");
 			myAgent.send(msg);
 			
-			System.out.println("Component cost: " + componentCost);
 			System.out.println("");
 			
 			toBuy.clear();
 			componentCost = 0;
+			orderPayment = 0;
 			ordersSent = 0;
 
 			
